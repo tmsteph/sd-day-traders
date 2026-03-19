@@ -377,6 +377,10 @@ ul {
   text-wrap: balance;
 }
 
+.meetups-line {
+  display: inline;
+}
+
 .card-grid {
   display: grid;
   gap: 1rem;
@@ -627,18 +631,26 @@ ul {
 
 @media (max-width: 560px) {
   .section-contrast .section-heading {
-    max-width: 15.5rem;
+    max-width: 100%;
   }
 
   .section-contrast .section-heading h2 {
-    max-width: 11ch;
-    font-size: 1.55rem;
-    line-height: 1.08;
+    max-width: none;
+    font-size: 1.18rem;
+    line-height: 1.14;
   }
 
   .section-contrast .section-heading .eyebrow {
     font-size: 0.72rem;
     letter-spacing: 0.1em;
+  }
+
+  .section-contrast .meetups-line {
+    display: block;
+  }
+
+  .section-contrast .meetups-line + .meetups-line {
+    margin-top: 0.14rem;
   }
 }
 
@@ -649,12 +661,12 @@ ul {
   }
 
   .section-contrast .section-heading {
-    max-width: 13rem;
+    max-width: 100%;
   }
 
   .section-contrast .section-heading h2 {
-    font-size: 1.28rem;
-    line-height: 1.1;
+    font-size: 1.08rem;
+    line-height: 1.16;
   }
 
   .hero-visual {
