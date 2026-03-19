@@ -600,7 +600,7 @@ ul {
   }
 
   .hero-visual {
-    width: min(100%, 21.5rem);
+    width: 100%;
     margin-inline: auto;
   }
 
@@ -610,21 +610,24 @@ ul {
   }
 
   .hero-image-frame img {
+    aspect-ratio: auto;
+    object-fit: contain;
+    height: auto;
     border-radius: 1.1rem;
   }
 
   .hero-image-note {
-    left: 1.5rem;
-    right: 1.5rem;
-    bottom: 1.5rem;
+    position: static;
+    margin-top: 0.75rem;
     flex-direction: column;
     align-items: flex-start;
+    justify-content: flex-start;
   }
 }
 
 @media (max-width: 420px) {
   .hero-visual {
-    width: min(100%, 19.75rem);
+    width: 100%;
   }
 }
 
