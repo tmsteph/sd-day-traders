@@ -571,6 +571,10 @@ ul {
     border-radius: 1.6rem;
   }
 
+  .section-contrast {
+    padding-inline: 0.5rem;
+  }
+
   .hero {
     gap: 1.5rem;
   }
@@ -658,6 +662,10 @@ ul {
   .section-contrast::before {
     width: calc(100% - 0.5rem);
     border-radius: 1.35rem;
+  }
+
+  .section-contrast {
+    padding-inline: 0.25rem;
   }
 
   .section-contrast .section-heading {
