@@ -286,10 +286,12 @@ ul {
 
 .panel-card {
   padding: 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(16, 19, 17, 0.08);
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, 0.84);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 245, 0.96), rgba(244, 239, 230, 0.94));
+  color: var(--text);
+  box-shadow: 0 16px 36px rgba(16, 19, 17, 0.08);
 }
 
 .panel-card h2,
@@ -309,28 +311,33 @@ ul {
 
 .panel-card p:last-child {
   margin-top: 0.8rem;
-  color: rgba(255, 255, 255, 0.68);
+  color: var(--text-soft);
   line-height: 1.6;
 }
 
 .panel-label {
-  color: var(--accent-3);
+  color: var(--accent-2);
 }
 
 .panel-card-feature {
   grid-column: 1 / -1;
   min-height: 15.5rem;
   background:
-    radial-gradient(circle at top right, rgba(255, 211, 111, 0.16), transparent 32%),
-    rgba(255, 255, 255, 0.05);
+    radial-gradient(circle at top right, rgba(255, 122, 24, 0.18), transparent 32%),
+    linear-gradient(180deg, rgba(255, 252, 245, 0.98), rgba(244, 239, 230, 0.96));
 }
 
 .panel-card-quote {
   grid-column: 1 / -1;
   border-color: rgba(30, 157, 97, 0.24);
-  background: rgba(30, 157, 97, 0.1);
+  background: rgba(232, 246, 237, 0.96);
   font-size: 1.05rem;
   line-height: 1.7;
+}
+
+.panel-card-quote p:last-child {
+  color: var(--text);
+  font-weight: 500;
 }
 
 .ticker {
