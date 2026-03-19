@@ -278,31 +278,6 @@ ul {
   border-radius: var(--radius);
 }
 
-.hero-image-note {
-  position: absolute;
-  left: 2rem;
-  right: 2rem;
-  bottom: 2rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.95rem 1.1rem;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 1.1rem;
-  background: rgba(10, 14, 12, 0.72);
-  color: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(14px);
-}
-
-.hero-image-kicker {
-  color: var(--accent-3);
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .hero-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -614,14 +589,6 @@ ul {
     object-fit: contain;
     height: auto;
     border-radius: 1.1rem;
-  }
-
-  .hero-image-note {
-    position: static;
-    margin-top: 0.75rem;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
   }
 }
 
