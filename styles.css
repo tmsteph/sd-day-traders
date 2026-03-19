@@ -625,6 +625,23 @@ ul {
   }
 }
 
+@media (max-width: 560px) {
+  .section-contrast .section-heading {
+    max-width: 15.5rem;
+  }
+
+  .section-contrast .section-heading h2 {
+    max-width: 11ch;
+    font-size: 1.55rem;
+    line-height: 1.08;
+  }
+
+  .section-contrast .section-heading .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+  }
+}
+
 @media (max-width: 420px) {
   .section-contrast::before {
     width: calc(100% - 0.5rem);
@@ -632,17 +649,12 @@ ul {
   }
 
   .section-contrast .section-heading {
-    max-width: 15rem;
+    max-width: 13rem;
   }
 
   .section-contrast .section-heading h2 {
-    font-size: 1.22rem;
-    line-height: 1.16;
-  }
-
-  .section-contrast .section-heading .eyebrow {
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
+    font-size: 1.28rem;
+    line-height: 1.1;
   }
 
   .hero-visual {
