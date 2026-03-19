@@ -374,6 +374,7 @@ ul {
 .join-banner h2 {
   margin-top: 0.8rem;
   font-size: clamp(2.2rem, 5vw, 4rem);
+  text-wrap: balance;
 }
 
 .card-grid {
@@ -630,9 +631,18 @@ ul {
     border-radius: 1.35rem;
   }
 
+  .section-contrast .section-heading {
+    max-width: 15rem;
+  }
+
   .section-contrast .section-heading h2 {
-    font-size: 1.9rem;
-    line-height: 1.02;
+    font-size: 1.22rem;
+    line-height: 1.16;
+  }
+
+  .section-contrast .section-heading .eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
   }
 
   .hero-visual {
