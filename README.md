@@ -3,6 +3,10 @@
 Starter landing page for a San Diego day trading community focused on interaction
 and meetups.
 
+## Website
+
+https://sd-day-traders.3dvr.tech
+
 ## Preview locally
 
 Run a static server from the project folder:
