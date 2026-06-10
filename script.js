@@ -7,76 +7,56 @@ if (yearNode) {
 const revealNodes = document.querySelectorAll("[data-reveal]");
 const bookingForm = document.querySelector("#bookingForm");
 const bookingStatus = document.querySelector("#bookingStatus");
+const esaiEmail = "gamboaesai@gmail.com";
 
 const consultationSlots = {
   "chart-review": {
     title: "SD Day Traders chart review with Esai",
-    minutes: 30,
+    duration: "30 minutes",
     description: "Bring one setup, one mistake, and one adjustment to review.",
   },
   "process-reset": {
     title: "SD Day Traders process reset with Esai",
-    minutes: 45,
+    duration: "45 minutes",
     description: "Review routine, risk rules, and weekly trading structure.",
   },
   "group-consult": {
     title: "SD Day Traders group consultation with Esai",
-    minutes: 60,
+    duration: "60 minutes",
     description: "Small-group Q&A for the SD Day Traders circle.",
   },
 };
 
-function formatCalendarDate(date) {
-  return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-}
-
-function nextSaturdayAt(hour) {
-  const date = new Date();
-  const daysUntilSaturday = (6 - date.getDay() + 7) % 7 || 7;
-  date.setDate(date.getDate() + daysUntilSaturday);
-  date.setHours(hour, 0, 0, 0);
-  return date;
-}
-
-function downloadCalendarHold(slotKey) {
+function openConsultationEmail(slotKey) {
   const slot = consultationSlots[slotKey];
 
   if (!slot) {
     return;
   }
 
-  const start = nextSaturdayAt(10);
-  const end = new Date(start.getTime() + slot.minutes * 60 * 1000);
-  const uid = `${slotKey}-${Date.now()}@sd-day-traders`;
-  const body = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//SD Day Traders//Consultations//EN",
-    "BEGIN:VEVENT",
-    `UID:${uid}`,
-    `DTSTAMP:${formatCalendarDate(new Date())}`,
-    `DTSTART:${formatCalendarDate(start)}`,
-    `DTEND:${formatCalendarDate(end)}`,
-    `SUMMARY:${slot.title}`,
-    `DESCRIPTION:${slot.description} Educational consultation only. Confirm the final time with Esai.`,
-    "LOCATION:San Diego or video call",
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ].join("\r\n");
-  const blob = new Blob([body], { type: "text/calendar" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${slotKey}-sd-day-traders.ics`;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  const subject = encodeURIComponent(`SD Day Traders consultation - ${slot.duration}`);
+  const body = encodeURIComponent(
+    [
+      `Hi Esai,`,
+      "",
+      `I want to book the ${slot.title.replace("SD Day Traders ", "")}.`,
+      `Session length: ${slot.duration}`,
+      "",
+      "My preferred days/times:",
+      "",
+      "What I want help with:",
+      slot.description,
+      "",
+      "My contact info:",
+    ].join("\n")
+  );
+
+  window.location.href = `mailto:${esaiEmail}?subject=${subject}&body=${body}`;
 }
 
 document.querySelectorAll("[data-slot]").forEach((button) => {
   button.addEventListener("click", () => {
-    downloadCalendarHold(button.dataset.slot);
+    openConsultationEmail(button.dataset.slot);
   });
 });
 
@@ -102,7 +82,7 @@ if (bookingForm) {
       ].join("\n")
     );
 
-    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${esaiEmail}?subject=${subject}&body=${body}`;
 
     if (bookingStatus) {
       bookingStatus.textContent = "Opening your email app with the booking request.";
