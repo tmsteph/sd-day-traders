@@ -28,6 +28,7 @@
         <nav class="site-nav" aria-label="Primary">
           <a href="#about">About</a>
           <a href="#meetups">Meetups</a>
+          <a href="#consultations">Consultations</a>
           <a href="#join">Join</a>
         </nav>
       </header>
@@ -44,7 +45,7 @@
             </p>
 
             <div class="hero-actions">
-              <a class="button button-primary" href="#join">Join the first wave</a>
+              <a class="button button-primary" href="#consultations">Book a consultation</a>
               <a class="button button-secondary" href="#meetups">See the meetup format</a>
             </div>
 
@@ -101,12 +102,14 @@
           <div class="ticker-track">
             <span>San Diego traders</span>
             <span>Market recap nights</span>
+            <span>1:1 consultations</span>
             <span>Weekend meetups</span>
             <span>Accountability</span>
             <span>Chart breakdowns</span>
             <span>Local community</span>
             <span>San Diego traders</span>
             <span>Market recap nights</span>
+            <span>1:1 consultations</span>
             <span>Weekend meetups</span>
             <span>Accountability</span>
             <span>Chart breakdowns</span>
@@ -186,6 +189,86 @@
                 worth keeping.
               </p>
             </div>
+          </div>
+        </section>
+
+        <section class="section" id="consultations">
+          <div class="section-heading" data-reveal>
+            <p class="eyebrow">Consultations</p>
+            <h2>Book time with Esai to tighten your trading process.</h2>
+          </div>
+
+          <div class="booking-layout">
+            <div class="booking-panel" data-reveal>
+              <p class="card-kicker">Best for</p>
+              <h3>New traders, stuck traders, and anyone who needs a second set of eyes.</h3>
+              <p>
+                Sessions are built around education, process, and accountability:
+                chart review, routine cleanup, risk rules, watchlist prep, and
+                what to focus on before the next market open.
+              </p>
+              <p class="booking-disclaimer">
+                Educational consultation only. No financial advice, no trade alerts,
+                and no promise of profits.
+              </p>
+            </div>
+
+            <div class="booking-panel booking-panel-slots" data-reveal>
+              <p class="card-kicker">Starting slots</p>
+              <div class="slot-list" aria-label="Consultation slot options">
+                <article class="slot-card">
+                  <span>Chart review</span>
+                  <strong>30 minutes</strong>
+                  <p>One setup, one mistake, one adjustment.</p>
+                  <button type="button" class="button button-secondary" data-slot="chart-review">Download calendar hold</button>
+                </article>
+                <article class="slot-card">
+                  <span>Process reset</span>
+                  <strong>45 minutes</strong>
+                  <p>Routine, risk rules, and weekly structure.</p>
+                  <button type="button" class="button button-secondary" data-slot="process-reset">Download calendar hold</button>
+                </article>
+                <article class="slot-card">
+                  <span>Group consult</span>
+                  <strong>60 minutes</strong>
+                  <p>Small-group Q&A for the SD Day Traders circle.</p>
+                  <button type="button" class="button button-secondary" data-slot="group-consult">Download calendar hold</button>
+                </article>
+              </div>
+            </div>
+
+            <form class="booking-form" id="bookingForm" data-reveal>
+              <div class="booking-form__header">
+                <p class="card-kicker">Request a time</p>
+                <h3>Send Esai the details</h3>
+              </div>
+              <label>
+                <span>Name</span>
+                <input name="name" type="text" autocomplete="name" required>
+              </label>
+              <label>
+                <span>Email or phone</span>
+                <input name="contact" type="text" autocomplete="email" required>
+              </label>
+              <label>
+                <span>Session type</span>
+                <select name="session">
+                  <option>Chart review - 30 minutes</option>
+                  <option>Process reset - 45 minutes</option>
+                  <option>Group consult - 60 minutes</option>
+                </select>
+              </label>
+              <label>
+                <span>Preferred days/times</span>
+                <input name="availability" type="text" placeholder="Weeknights after 6, Saturday morning" required>
+              </label>
+              <label>
+                <span>What do you want help with?</span>
+                <textarea name="message" rows="4" placeholder="Charts, routine, risk, watchlist, accountability"></textarea>
+              </label>
+              <button class="button button-primary" type="submit">Send booking request</button>
+              <p class="form-status" id="bookingStatus" role="status" aria-live="polite"></p>
+            </form>
           </div>
         </section>
 
