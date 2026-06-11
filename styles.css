@@ -398,8 +398,7 @@ ul {
 .info-card,
 .join-banner,
 .schedule-card,
-.booking-panel,
-.booking-form {
+.booking-panel {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -409,15 +408,13 @@ ul {
 
 .info-card,
 .schedule-card,
-.booking-panel,
-.booking-form {
+.booking-panel {
   padding: 1.5rem;
 }
 
 .info-card h3,
 .schedule-card h3,
-.booking-panel h3,
-.booking-form h3 {
+.booking-panel h3 {
   margin-top: 0.65rem;
   font-size: 1.45rem;
   letter-spacing: -0.03em;
@@ -478,13 +475,23 @@ ul {
 
 .booking-layout {
   display: grid;
-  grid-template-columns: 0.85fr 1.15fr;
-  gap: 1rem;
-  align-items: start;
+  max-width: 46rem;
 }
 
 .booking-panel {
   min-height: 100%;
+}
+
+.booking-panel-simple {
+  display: grid;
+  gap: 1rem;
+  background:
+    radial-gradient(circle at top right, rgba(30, 157, 97, 0.16), transparent 38%),
+    var(--surface);
+}
+
+.booking-panel-simple .button {
+  width: fit-content;
 }
 
 .booking-disclaimer {
@@ -494,101 +501,6 @@ ul {
   background: rgba(255, 122, 24, 0.08);
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.85rem;
-}
-
-.booking-panel-slots {
-  background:
-    radial-gradient(circle at top right, rgba(30, 157, 97, 0.16), transparent 38%),
-    var(--surface);
-}
-
-.slot-list {
-  display: grid;
-  gap: 0.85rem;
-  margin-top: 1rem;
-}
-
-.slot-card {
-  display: grid;
-  gap: 0.55rem;
-  padding: 1rem;
-  border: 1px solid rgba(16, 19, 17, 0.08);
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.46);
-}
-
-.slot-card span {
-  color: var(--accent-2);
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
-.slot-card strong {
-  font-size: 1.35rem;
-  letter-spacing: -0.03em;
-}
-
-.slot-card p {
-  color: var(--text-soft);
-  line-height: 1.55;
-}
-
-.booking-form {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  background:
-    linear-gradient(135deg, rgba(16, 19, 17, 0.96), rgba(32, 39, 35, 0.94)),
-    var(--bg-strong);
-  color: #fffaf2;
-}
-
-.booking-form__header {
-  grid-column: 1 / -1;
-}
-
-.booking-form label {
-  display: grid;
-  gap: 0.45rem;
-  color: rgba(255, 250, 242, 0.8);
-  font-size: 0.92rem;
-}
-
-.booking-form input,
-.booking-form select,
-.booking-form textarea {
-  width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.08);
-  color: #fffaf2;
-  font: inherit;
-  padding: 0.9rem 1rem;
-}
-
-.booking-form textarea,
-.booking-form button,
-.form-status {
-  grid-column: 1 / -1;
-}
-
-.booking-form select option {
-  color: var(--text);
-}
-
-.booking-form input:focus,
-.booking-form select:focus,
-.booking-form textarea:focus {
-  outline: 2px solid var(--accent-3);
-  outline-offset: 2px;
-}
-
-.form-status {
-  min-height: 1.4rem;
-  color: rgba(255, 250, 242, 0.72);
 }
 
 .schedule-card {
@@ -718,10 +630,6 @@ ul {
 
   .join-banner {
     padding: 1.5rem;
-  }
-
-  .booking-form {
-    grid-template-columns: 1fr;
   }
 
   .section-contrast .section-heading {
