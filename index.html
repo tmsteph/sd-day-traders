@@ -197,21 +197,85 @@
             <h2>Book time to tighten your trading process.</h2>
           </div>
 
-          <div class="booking-layout booking-layout-simple">
-            <div class="booking-panel booking-panel-simple" data-reveal>
-              <p class="card-kicker">Consultations</p>
-              <h3>Request a consultation time.</h3>
-              <p>
-                Send a brief note with your availability and the area you would
-                like to review. We will reply with available times for chart
-                review, routine cleanup, risk rules, watchlist prep, or group Q&A.
-              </p>
+          <div class="booking-layout booking-layout-calendar">
+            <div class="booking-panel booking-calendar-panel" data-reveal>
+              <div class="booking-intro">
+                <div>
+                  <p class="card-kicker">1 · Pick a day</p>
+                  <h3>Choose a preferred consultation time.</h3>
+                </div>
+                <p class="booking-note">
+                  Pick a date and time that works for you. Esai will confirm the
+                  request by email before the meeting is reserved.
+                </p>
+              </div>
+
+              <div class="calendar-shell" data-booking-calendar>
+                <div class="calendar-toolbar">
+                  <button class="calendar-nav" type="button" data-calendar-prev aria-label="Previous month">←</button>
+                  <p class="calendar-month" data-calendar-month aria-live="polite"></p>
+                  <button class="calendar-nav" type="button" data-calendar-next aria-label="Next month">→</button>
+                </div>
+                <div class="calendar-weekdays" aria-hidden="true">
+                  <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                </div>
+                <div class="calendar-grid" data-calendar-grid></div>
+              </div>
+            </div>
+
+            <form class="booking-panel booking-form" data-booking-form data-reveal>
+              <div>
+                <p class="card-kicker">2 · Pick a time</p>
+                <label class="field-label" for="booking-time">Preferred time (Pacific Time)</label>
+                <select id="booking-time" name="time" required>
+                  <option value="">Choose a time</option>
+                  <option>9:00 AM</option>
+                  <option>10:30 AM</option>
+                  <option>12:00 PM</option>
+                  <option>1:30 PM</option>
+                  <option>3:00 PM</option>
+                  <option>4:30 PM</option>
+                  <option>6:00 PM</option>
+                </select>
+              </div>
+
+              <div>
+                <p class="card-kicker">3 · What should we cover?</p>
+                <label class="field-label" for="booking-topic">Consultation focus</label>
+                <select id="booking-topic" name="topic" required>
+                  <option value="">Choose a topic</option>
+                  <option>Chart review</option>
+                  <option>Trading routine cleanup</option>
+                  <option>Risk rules</option>
+                  <option>Watchlist preparation</option>
+                  <option>Group Q&amp;A</option>
+                  <option>Something else</option>
+                </select>
+              </div>
+
+              <div class="booking-fields">
+                <div>
+                  <label class="field-label" for="booking-name">Name</label>
+                  <input id="booking-name" name="name" type="text" autocomplete="name" required>
+                </div>
+                <div>
+                  <label class="field-label" for="booking-email">Email</label>
+                  <input id="booking-email" name="email" type="email" autocomplete="email" required>
+                </div>
+              </div>
+
+              <div class="booking-summary" data-booking-summary aria-live="polite">
+                Select a day to build your request.
+              </div>
+
               <p class="booking-disclaimer">
                 Educational consultation only. No financial advice, no trade alerts,
                 and no promise of profits.
               </p>
-              <a class="button button-primary" href="mailto:gamboaesai@gmail.com?subject=SD%20Day%20Traders%20consultation%20request&amp;body=Hello%2C%0D%0A%0D%0AI%27d%20like%20to%20request%20a%20consultation.%0D%0A%0D%0AMy%20availability%3A%0D%0A%0D%0AWhat%20I%27d%20like%20help%20with%3A%0D%0A%0D%0AMy%20contact%20information%3A" target="_blank" rel="noopener noreferrer">Request a consultation</a>
-            </div>
+
+              <button class="button button-primary" type="submit">Request this time</button>
+              <p class="booking-status" data-booking-status aria-live="polite"></p>
+            </form>
           </div>
         </section>
 
