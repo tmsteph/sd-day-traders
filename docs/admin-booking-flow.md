@@ -33,6 +33,7 @@ A later enhancement can add a secure customer reschedule link that lets the cust
 - Re-check availability at approval time to prevent double booking.
 - Public booking fails closed when live availability cannot be verified.
 - Customer-facing language distinguishes `requested` from `confirmed` everywhere.
+- Action handlers must be idempotent so duplicate email clicks cannot create duplicate calendar events or duplicate customer messages.
 
 ## Release tests
 
