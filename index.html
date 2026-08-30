@@ -226,17 +226,18 @@
             <form class="booking-panel booking-form" data-booking-form data-reveal>
               <div>
                 <p class="card-kicker">2 · Pick a time</p>
-                <label class="field-label" for="booking-time">Preferred time (Pacific Time)</label>
+                <label class="field-label" for="booking-time">Preferred time (your local time)</label>
                 <select id="booking-time" name="time" required>
                   <option value="">Choose a time</option>
-                  <option>9:00 AM</option>
-                  <option>10:30 AM</option>
-                  <option>12:00 PM</option>
-                  <option>1:30 PM</option>
-                  <option>3:00 PM</option>
-                  <option>4:30 PM</option>
-                  <option>6:00 PM</option>
+                  <option value="09:00">9:00 AM PT</option>
+                  <option value="10:30">10:30 AM PT</option>
+                  <option value="12:00">12:00 PM PT</option>
+                  <option value="13:30">1:30 PM PT</option>
+                  <option value="15:00">3:00 PM PT</option>
+                  <option value="16:30">4:30 PM PT</option>
+                  <option value="18:00">6:00 PM PT</option>
                 </select>
+                <p class="booking-note" data-timezone-note></p>
               </div>
 
               <div>
