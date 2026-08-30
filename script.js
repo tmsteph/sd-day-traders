@@ -237,7 +237,7 @@ if (
 
   const openMailFallback = (subject, body) => {
     bookingStatus.textContent =
-      "Automatic delivery is unavailable, so we're opening your email app with the request ready to send.";
+      "Automatic send failed. Your email app is opening with the request ready — tap Send to finish.";
     window.location.href = `mailto:${bookingRecipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
@@ -307,7 +307,7 @@ if (
       }
 
       bookingStatus.textContent =
-        `Request sent. Esai will reply to ${email} to confirm the time.`;
+        `Sent to Esai — you're done. He'll reply to ${email} to confirm the time.`;
     } catch (error) {
       console.warn("Automatic booking delivery failed; using email fallback.", error);
       openMailFallback(subject, body);
