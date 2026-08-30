@@ -47,6 +47,8 @@ if (
   const timezoneNote = document.querySelector("[data-timezone-note]");
   const timeSelect = bookingForm.elements.time;
   const bookingApiBase = (document.documentElement.dataset.bookingApi || "").replace(/\/$/, "");
+  const bookingApiEnabled = Boolean(bookingApiBase);
+  const bookingRecipient = "gamboaesai@gmail.com";
   const bookingSubmitButton = bookingForm.querySelector('button[type="submit"]');
   let busyRanges = [];
   let availabilityState = "idle";
@@ -175,8 +177,7 @@ if (
 
       option.disabled =
         instant <= new Date() ||
-        availabilityState !== "ready" ||
-        slotIsBusy(instant);
+        (bookingApiEnabled && (availabilityState !== "ready" || slotIsBusy(instant)));
     });
 
     if (timeSelect.selectedOptions[0]?.disabled) {
@@ -186,6 +187,12 @@ if (
 
 
   const loadAvailabilityForDate = async (dateKey) => {
+    if (!bookingApiEnabled) {
+      availabilityState = "ready";
+      busyRanges = [];
+      renderTimeOptions();
+      return;
+    }
     availabilityState = "loading";
     busyRanges = [];
     renderTimeOptions();
@@ -313,7 +320,12 @@ if (
 
         renderCalendar();
         updateSummary();
-        await loadAvailabilityForDate(dateKey);
+        if (bookingApiEnabled) {
+          await loadAvailabilityForDate(dateKey);
+        } else {
+          availabilityState = "ready";
+          renderTimeOptions();
+        }
       });
 
       calendarGrid.append(button);
@@ -351,6 +363,28 @@ if (
     if (!bookingForm.reportValidity()) return;
 
     const selectedInstant = getSelectedInstant();
+    if (!bookingApiEnabled) {
+      const formData = new FormData(bookingForm);
+      const localDateTime = formatDateTime(selectedInstant, visitorTimeZone);
+      const pacificDateTime = formatDateTime(selectedInstant, PACIFIC_TIME_ZONE);
+      const subject = `SD Day Traders consultation request — ${pacificDateTime} PT`;
+      const body = [
+        "Hello Esai,",
+        "",
+        "I'd like to request a consultation.",
+        "",
+        `Customer time: ${localDateTime} (${visitorTimeZone})`,
+        `Pacific time: ${pacificDateTime} PT`,
+        `Focus: ${formData.get("topic")}`,
+        `Name: ${formData.get("name")}`,
+        `Email: ${formData.get("email")}`,
+        "",
+        "Please confirm whether this time is available.",
+      ].join("\n");
+      bookingStatus.textContent = "Your request is ready. Your email app is opening — tap Send to deliver it to Esai.";
+      window.location.href = `mailto:${bookingRecipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      return;
+    }
     if (!selectedInstant || slotIsBusy(selectedInstant)) {
       bookingStatus.textContent = "That time is no longer available. Choose another time.";
       renderTimeOptions();

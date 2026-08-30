@@ -151,6 +151,14 @@ async function loadDashboard() {
 }
 
 async function initialize() {
+  if (!apiBase) {
+    connectionTitle.textContent = 'Admin backend not enabled in this build';
+    connectionDetail.textContent = 'The admin UI is present, but it stays disabled until the tested booking API is connected.';
+    connectGoogle.hidden = true;
+    logoutButton.hidden = true;
+    adminContent.hidden = true;
+    return;
+  }
   const returnTo = `${location.pathname}${location.search}`;
   connectGoogle.href = apiUrl(`/api/admin/google/start?returnTo=${encodeURIComponent(returnTo)}`);
   try {

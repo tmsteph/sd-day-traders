@@ -73,7 +73,8 @@ test('public booking creates a pending hold, sends notifications, and never clai
   expect(snapshot.mails.find(mail => mail.to === 'release-test@example.com').text).toContain('not confirmed yet');
   expect(await page.locator('[data-booking-status]').innerText()).not.toMatch(/^confirmed/i);
   const script = fs.readFileSync('script.js', 'utf8');
-  expect(script).not.toContain('mailto:${bookingRecipient}');
+  expect(script).toContain('bookingApiEnabled');
+  expect(script).toContain('mailto:${bookingRecipient}');
   expect(script).not.toContain('bookingRelayUrl');
 });
 
