@@ -29,7 +29,7 @@ test('booking uses the explicit mailto flow and never calls the relay', async ({
   await page.goto('/');
   const futureDate = page.locator('[data-calendar-grid] button.calendar-day').nth(1);
   await futureDate.click();
-  await page.getByLabel('Preferred time (Pacific Time)').selectOption({ label: '10:30 AM' });
+  await page.getByLabel('Preferred time (your local time)').selectOption('10:30');
   await page.getByLabel('Consultation focus').selectOption({ label: 'Chart review' });
   await page.getByLabel('Name').fill('Release Test');
   await page.getByLabel('Email').fill('release-test@example.com');
@@ -42,6 +42,39 @@ test('booking uses the explicit mailto flow and never calls the relay', async ({
   expect(script).toContain('mailto:${bookingRecipient}');
   expect(script).toContain('gamboaesai@gmail.com');
   expect(script).not.toContain('bookingRelayUrl');
+});
+
+test('New York visitor sees local time with Pacific equivalent', async ({ browser }) => {
+  const context = await browser.newContext({ timezoneId: 'America/New_York' });
+  const page = await context.newPage();
+  await page.goto('/');
+
+  await expect(page.locator('[data-timezone-note]')).toContainText('America/New_York');
+  await page.locator('[data-calendar-grid] button.calendar-day').nth(1).click();
+
+  const option = page.locator('#booking-time option[value="10:30"]');
+  await expect(option).toHaveText(/1:30 PM local · 10:30 AM PT/);
+
+  await page.getByLabel('Preferred time (your local time)').selectOption('10:30');
+  await expect(page.locator('[data-booking-summary]')).toContainText('1:30 PM');
+  await expect(page.locator('[data-booking-summary]')).toContainText('10:30 AM');
+  await expect(page.locator('[data-booking-summary]')).toContainText('America/New_York');
+
+  await context.close();
+});
+
+test('Tokyo visitor is warned when a Pacific slot lands on the next local day', async ({ browser }) => {
+  const context = await browser.newContext({ timezoneId: 'Asia/Tokyo' });
+  const page = await context.newPage();
+  await page.goto('/');
+  await page.locator('[data-calendar-grid] button.calendar-day').nth(1).click();
+
+  const optionText = await page.locator('#booking-time option[value="18:00"]').textContent();
+  expect(optionText).toContain('local · 6:00 PM PT');
+  expect(optionText).toMatch(/(10:00|11:00) AM/);
+  expect(optionText).toMatch(/Mon|Tue|Wed|Thu|Fri|Sat|Sun/);
+
+  await context.close();
 });
 
 test('mobile page has no horizontal overflow', async ({ page }) => {
