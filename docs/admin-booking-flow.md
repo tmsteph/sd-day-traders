@@ -19,7 +19,9 @@ Status: development design only. Do not expose or release until the authenticate
 
 Esai should be able to handle the common case from the notification email with very little friction. The buttons deep-link to the exact pending request and intended action, but the final state change happens only after authenticated confirmation in admin. This avoids accidental approvals from email scanners, link previews, or forwarded messages.
 
-For rescheduling, admin should open an editable message rather than immediately emailing the customer. It should prefill the original requested time plus a few currently available alternatives, with all times shown in both Esai's Pacific time and the customer's local timezone when known.
+For rescheduling, admin opens an editable customer email rather than sending immediately. It prefills the original requested time plus a few currently available alternatives. Esai can change the wording or suggested slots, then tap Send. The customer sees times in their local timezone with Pacific equivalents where useful.
+
+A later enhancement can add a secure customer reschedule link that lets the customer choose one of Esai's suggested alternatives directly, returning the request to `pending` for Esai's final approval.
 
 ## Security and UX rules
 
