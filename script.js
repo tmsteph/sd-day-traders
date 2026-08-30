@@ -47,6 +47,9 @@ if (
   let visibleMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   let selectedDate = "";
   const timeSelect = bookingForm.elements.time;
+  const submitButton = bookingForm.querySelector('button[type="submit"]');
+  const bookingRelayUrl = "https://portal.3dvr.tech/api/calendar/reminder-email";
+  const bookingRecipient = "gamboaesai@gmail.com";
 
   const formatDateKey = (date) => {
     const year = date.getFullYear();
@@ -197,7 +200,13 @@ if (
   timeSelect.addEventListener("change", updateSummary);
   bookingForm.elements.topic.addEventListener("change", updateSummary);
 
-  bookingForm.addEventListener("submit", (event) => {
+  const openMailFallback = (subject, body) => {
+    bookingStatus.textContent =
+      "Automatic delivery is unavailable, so we're opening your email app with the request ready to send.";
+    window.location.href = `mailto:${bookingRecipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  bookingForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     bookingStatus.textContent = "";
 
@@ -217,6 +226,10 @@ if (
       day: "numeric",
       year: "numeric",
     });
+    const time = formData.get("time");
+    const topic = formData.get("topic");
+    const name = formData.get("name");
+    const email = formData.get("email");
     const subject = `SD Day Traders consultation request — ${dateLabel}`;
     const body = [
       "Hello Esai,",
@@ -224,16 +237,49 @@ if (
       "I'd like to request a consultation.",
       "",
       `Preferred date: ${dateLabel}`,
-      `Preferred time: ${formData.get("time")}`,
-      `Focus: ${formData.get("topic")}`,
-      `Name: ${formData.get("name")}`,
-      `Email: ${formData.get("email")}`,
+      `Preferred time: ${time}`,
+      `Focus: ${topic}`,
+      `Name: ${name}`,
+      `Email: ${email}`,
       "",
       "Please confirm whether this time is available.",
     ].join("\n");
 
-    bookingStatus.textContent = "Opening your email app with the request filled in…";
-    window.location.href = `mailto:gamboaesai@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 9000);
+
+    if (submitButton) submitButton.disabled = true;
+    bookingStatus.textContent = "Sending your request…";
+
+    try {
+      const response = await fetch(bookingRelayUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipients: [bookingRecipient],
+          event: {
+            title: subject,
+            description: `New consultation request from ${name} (${email}).`,
+            reminderMessage: body,
+            timeZone: "America/Los_Angeles",
+          },
+        }),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Booking relay returned ${response.status}`);
+      }
+
+      bookingStatus.textContent =
+        `Request sent. Esai will reply to ${email} to confirm the time.`;
+    } catch (error) {
+      console.warn("Automatic booking delivery failed; using email fallback.", error);
+      openMailFallback(subject, body);
+    } finally {
+      window.clearTimeout(timeoutId);
+      if (submitButton) submitButton.disabled = false;
+    }
   });
 
   renderCalendar();
