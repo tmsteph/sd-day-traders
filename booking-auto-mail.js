@@ -63,6 +63,7 @@
           'Idempotency-Key': requestId(),
         },
         body: JSON.stringify({
+          mode: 'booking-request',
           name: String(data.get('name') || ''),
           email: String(data.get('email') || ''),
           topic: String(data.get('topic') || ''),

@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-const MAIL_ENDPOINT = 'https://portal.3dvr.tech/api/calendar/booking-request';
+const MAIL_ENDPOINT = 'https://portal.3dvr.tech/api/calendar/reminder-email';
 
 test('mail-only production mode submits once without opening the visitor email app', async ({ page }) => {
   let captured = null;
@@ -29,6 +29,7 @@ test('mail-only production mode submits once without opening the visitor email a
   await expect(page.locator('[data-booking-status]')).toContainText('you do not need to send anything');
   await expect(page.getByRole('button', { name: 'Request sent' })).toBeDisabled();
   expect(page.url()).toMatch(/^http:\/\/127\.0\.0\.1:/);
+  expect(captured.mode).toBe('booking-request');
   expect(captured.name).toBe('Magic Booking Test');
   expect(captured.email).toBe('customer@example.com');
   expect(captured.topic).toBe('Chart review');
