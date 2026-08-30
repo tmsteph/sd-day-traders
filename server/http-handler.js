@@ -49,6 +49,7 @@ function createHttpHandler(options = {}) {
   const publicOrigin = String(config.SDDT_PUBLIC_ORIGIN || 'https://sd-day-traders.3dvr.tech').replace(/\/$/, '');
   const apiOrigin = String(config.SDDT_API_ORIGIN || 'http://127.0.0.1:4318').replace(/\/$/, '');
   const sessionSecret = config.SDDT_ADMIN_SESSION_SECRET || '';
+  const googleRedirectUri = String(config.SDDT_GOOGLE_REDIRECT_URI || `${apiOrigin}/api/admin/google/callback`);
   const google = options.google || createGoogleAdapter({ config });
   const booking = options.booking || createBookingService({ google, adminEmail, publicOrigin, now: options.now });
 
@@ -107,22 +108,23 @@ function createHttpHandler(options = {}) {
           nonce: crypto.randomBytes(16).toString('base64url'),
           exp: Date.now() + 15 * 60000,
         };
-        const state = session.encode(payload, sessionSecret);
+        const stateToken = session.encode(payload, sessionSecret);
+        const state = `sddt.${stateToken}`;
         appendCookie(res, session.cookie('sddt_oauth', state, { maxAge: 900 }));
-        const redirectUri = `${apiOrigin}/api/admin/google/callback`;
-        const location = await google.authorizationUrl({ state, verifier, redirectUri });
+        const location = await google.authorizationUrl({ state, verifier, redirectUri: googleRedirectUri });
         return redirect(res, location);
       }
       if (req.method === 'GET' && path === '/api/admin/google/callback') {
         const state = url.searchParams.get('state') || '';
         const cookieState = session.parseCookies(req.headers.cookie || '').sddt_oauth || '';
-        const flow = state && cookieState === state ? session.decode(state, sessionSecret) : null;
+        const stateToken = state.startsWith('sddt.') ? state.slice(5) : state;
+        const flow = state && cookieState === state ? session.decode(stateToken, sessionSecret) : null;
         if (!flow) throw Object.assign(new Error('OAuth state check failed.'), { status: 400 });
         if (url.searchParams.get('error')) throw Object.assign(new Error(`Google authorization failed: ${url.searchParams.get('error')}`), { status: 400 });
         const credential = await google.exchangeCode({
           code: url.searchParams.get('code') || '',
           verifier: flow.verifier,
-          redirectUri: `${apiOrigin}/api/admin/google/callback`,
+          redirectUri: googleRedirectUri,
         });
         if (String(credential.email || '').toLowerCase() !== adminEmail) {
           throw Object.assign(new Error('This Google account is not authorized for SD Day Traders admin.'), { status: 403 });
