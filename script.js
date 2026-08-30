@@ -144,6 +144,9 @@ if (
       year: "numeric",
     });
 
+    const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    previousMonthButton.disabled = visibleMonth <= currentMonth;
+
     const gridStart = new Date(
       visibleMonth.getFullYear(),
       visibleMonth.getMonth(),
@@ -160,6 +163,14 @@ if (
       const isOutsideMonth =
         date.getFullYear() !== visibleMonth.getFullYear() ||
         date.getMonth() !== visibleMonth.getMonth();
+      if (date < today) {
+        const spacer = document.createElement("span");
+        spacer.className = "calendar-day calendar-day-empty";
+        spacer.setAttribute("aria-hidden", "true");
+        calendarGrid.append(spacer);
+        continue;
+      }
+
       const button = document.createElement("button");
       button.type = "button";
       button.className = "calendar-day";
@@ -178,10 +189,6 @@ if (
       if (isOutsideMonth) {
         button.style.opacity = "0.45";
         button.dataset.outsideMonth = "true";
-      }
-
-      if (date < today) {
-        button.disabled = true;
       }
 
       if (dateKey === formatDateKey(today)) {
@@ -213,7 +220,10 @@ if (
   };
 
   previousMonthButton.addEventListener("click", () => {
-    visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
+    const previousMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
+    const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    if (previousMonth < currentMonth) return;
+    visibleMonth = previousMonth;
     renderCalendar();
   });
 
