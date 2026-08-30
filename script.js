@@ -41,7 +41,32 @@ if (
   bookingSummary &&
   bookingStatus
 ) {
-  const today = new Date();
+  const getPacificClock = () => {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Los_Angeles",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(new Date());
+    const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+    return {
+      year: Number(values.year),
+      month: Number(values.month),
+      day: Number(values.day),
+      hour: Number(values.hour),
+      minute: Number(values.minute),
+    };
+  };
+
+  const initialPacificClock = getPacificClock();
+  const today = new Date(
+    initialPacificClock.year,
+    initialPacificClock.month - 1,
+    initialPacificClock.day
+  );
   today.setHours(0, 0, 0, 0);
 
   let visibleMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -65,8 +90,8 @@ if (
 
   const updateTimeAvailability = () => {
     const selectedIsToday = selectedDate === formatDateKey(today);
-    const now = new Date();
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const pacificClock = getPacificClock();
+    const currentMinutes = pacificClock.hour * 60 + pacificClock.minute;
 
     Array.from(timeSelect.options).forEach((option, index) => {
       if (index === 0) return;
