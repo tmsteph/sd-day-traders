@@ -116,27 +116,26 @@ if (
       year: "numeric",
     });
 
-    const firstDay = visibleMonth.getDay();
-    const daysInMonth = new Date(
+    const gridStart = new Date(
       visibleMonth.getFullYear(),
-      visibleMonth.getMonth() + 1,
-      0
-    ).getDate();
+      visibleMonth.getMonth(),
+      1 - visibleMonth.getDay()
+    );
 
-    for (let index = 0; index < firstDay; index += 1) {
-      const spacer = document.createElement("span");
-      spacer.className = "calendar-spacer";
-      spacer.setAttribute("aria-hidden", "true");
-      calendarGrid.append(spacer);
-    }
-
-    for (let day = 1; day <= daysInMonth; day += 1) {
-      const date = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), day);
+    for (let index = 0; index < 42; index += 1) {
+      const date = new Date(
+        gridStart.getFullYear(),
+        gridStart.getMonth(),
+        gridStart.getDate() + index
+      );
       const dateKey = formatDateKey(date);
+      const isOutsideMonth =
+        date.getFullYear() !== visibleMonth.getFullYear() ||
+        date.getMonth() !== visibleMonth.getMonth();
       const button = document.createElement("button");
       button.type = "button";
       button.className = "calendar-day";
-      button.textContent = String(day);
+      button.textContent = String(date.getDate());
       button.dataset.date = dateKey;
       button.setAttribute(
         "aria-label",
@@ -147,6 +146,11 @@ if (
           year: "numeric",
         })
       );
+
+      if (isOutsideMonth) {
+        button.style.opacity = "0.45";
+        button.dataset.outsideMonth = "true";
+      }
 
       if (date < today) {
         button.disabled = true;
@@ -167,26 +171,22 @@ if (
         selectedDate = dateKey;
         bookingStatus.textContent = "";
         updateTimeAvailability();
+
+        if (isOutsideMonth) {
+          visibleMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+        }
+
         renderCalendar();
         updateSummary();
       });
 
       calendarGrid.append(button);
     }
-
-    const isCurrentMonth =
-      visibleMonth.getFullYear() === today.getFullYear() &&
-      visibleMonth.getMonth() === today.getMonth();
-    previousMonthButton.disabled = isCurrentMonth;
   };
 
   previousMonthButton.addEventListener("click", () => {
-    const previous = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
-    const current = new Date(today.getFullYear(), today.getMonth(), 1);
-    if (previous >= current) {
-      visibleMonth = previous;
-      renderCalendar();
-    }
+    visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
+    renderCalendar();
   });
 
   nextMonthButton.addEventListener("click", () => {
