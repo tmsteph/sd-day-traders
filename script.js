@@ -41,16 +41,23 @@ if (
   bookingSummary &&
   bookingStatus
 ) {
-  const getPacificClock = () => {
+  const PACIFIC_TIME_ZONE = "America/Los_Angeles";
+  const visitorTimeZone =
+    Intl.DateTimeFormat().resolvedOptions().timeZone || PACIFIC_TIME_ZONE;
+  const timezoneNote = document.querySelector("[data-timezone-note]");
+  const timeSelect = bookingForm.elements.time;
+  const bookingRecipient = "gamboaesai@gmail.com";
+
+  const getZonedParts = (date, timeZone) => {
     const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone: "America/Los_Angeles",
+      timeZone,
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
       hourCycle: "h23",
-    }).formatToParts(new Date());
+    }).formatToParts(date);
     const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
     return {
       year: Number(values.year),
@@ -60,6 +67,53 @@ if (
       minute: Number(values.minute),
     };
   };
+
+  const formatDateKeyFromParts = ({ year, month, day }) =>
+    `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+  const getPacificClock = () => getZonedParts(new Date(), PACIFIC_TIME_ZONE);
+
+  const makePacificInstant = (dateKey, timeValue) => {
+    const [year, month, day] = dateKey.split("-").map(Number);
+    const [hour, minute] = timeValue.split(":").map(Number);
+    const utcGuess = Date.UTC(year, month - 1, day, hour, minute);
+    const zonedGuess = getZonedParts(new Date(utcGuess), PACIFIC_TIME_ZONE);
+    const zonedAsUtc = Date.UTC(
+      zonedGuess.year,
+      zonedGuess.month - 1,
+      zonedGuess.day,
+      zonedGuess.hour,
+      zonedGuess.minute
+    );
+    const offsetMs = zonedAsUtc - utcGuess;
+    return new Date(utcGuess - offsetMs);
+  };
+
+  const formatTime = (date, timeZone) =>
+    new Intl.DateTimeFormat(undefined, {
+      timeZone,
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(date);
+
+  const formatDateTime = (date, timeZone) =>
+    new Intl.DateTimeFormat(undefined, {
+      timeZone,
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(date);
+
+  const formatShortDate = (date, timeZone) =>
+    new Intl.DateTimeFormat(undefined, {
+      timeZone,
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    }).format(date);
 
   const initialPacificClock = getPacificClock();
   const today = new Date(
@@ -71,8 +125,6 @@ if (
 
   let visibleMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   let selectedDate = "";
-  const timeSelect = bookingForm.elements.time;
-  const bookingRecipient = "gamboaesai@gmail.com";
 
   const formatDateKey = (date) => {
     const year = date.getFullYear();
@@ -81,31 +133,33 @@ if (
     return `${year}-${month}-${day}`;
   };
 
-  const parseDateKey = (dateKey) => {
-    const [year, month, day] = dateKey.split("-").map(Number);
-    return new Date(year, month - 1, day);
+  const getSelectedInstant = () => {
+    if (!selectedDate || !timeSelect.value) return null;
+    return makePacificInstant(selectedDate, timeSelect.value);
   };
 
-  const updateTimeAvailability = () => {
-    const selectedIsToday = selectedDate === formatDateKey(today);
-    const pacificClock = getPacificClock();
-    const currentMinutes = pacificClock.hour * 60 + pacificClock.minute;
-
+  const renderTimeOptions = () => {
     Array.from(timeSelect.options).forEach((option, index) => {
       if (index === 0) return;
-      option.disabled = false;
+      if (!selectedDate) {
+        option.disabled = true;
+        return;
+      }
 
-      if (!selectedIsToday) return;
+      const instant = makePacificInstant(selectedDate, option.value);
+      const localTime = formatTime(instant, visitorTimeZone);
+      const pacificTime = formatTime(instant, PACIFIC_TIME_ZONE);
+      const localDateKey = formatDateKeyFromParts(getZonedParts(instant, visitorTimeZone));
 
-      const match = option.textContent.match(/(\d+):(\d+)\s([AP]M)/);
-      if (!match) return;
+      if (visitorTimeZone === PACIFIC_TIME_ZONE) {
+        option.textContent = `${pacificTime} PT`;
+      } else if (localDateKey === selectedDate) {
+        option.textContent = `${localTime} local · ${pacificTime} PT`;
+      } else {
+        option.textContent = `${localTime} ${formatShortDate(instant, visitorTimeZone)} local · ${pacificTime} PT`;
+      }
 
-      let hour = Number(match[1]);
-      const minute = Number(match[2]);
-      if (match[3] === "PM" && hour !== 12) hour += 12;
-      if (match[3] === "AM" && hour === 12) hour = 0;
-
-      option.disabled = hour * 60 + minute <= currentMinutes;
+      option.disabled = instant <= new Date();
     });
 
     if (timeSelect.selectedOptions[0]?.disabled) {
@@ -114,7 +168,6 @@ if (
   };
 
   const updateSummary = () => {
-    const time = bookingForm.elements.time.value;
     const topic = bookingForm.elements.topic.value;
 
     if (!selectedDate) {
@@ -122,15 +175,18 @@ if (
       return;
     }
 
-    const dateLabel = parseDateKey(selectedDate).toLocaleDateString(undefined, {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
+    const selectedInstant = getSelectedInstant();
+    if (!selectedInstant) {
+      const pacificNoon = makePacificInstant(selectedDate, "12:00");
+      bookingSummary.textContent = `${formatShortDate(pacificNoon, PACIFIC_TIME_ZONE)} · choose a local time`;
+      return;
+    }
 
-    const details = [dateLabel];
-    if (time) details.push(time);
+    const localDateTime = formatDateTime(selectedInstant, visitorTimeZone);
+    const pacificDateTime = formatDateTime(selectedInstant, PACIFIC_TIME_ZONE);
+    const details = visitorTimeZone === PACIFIC_TIME_ZONE
+      ? [`${pacificDateTime} PT`]
+      : [`${localDateTime} (${visitorTimeZone})`, `${pacificDateTime} PT`];
     if (topic) details.push(topic);
     bookingSummary.textContent = details.join(" · ");
   };
@@ -203,7 +259,7 @@ if (
       button.addEventListener("click", () => {
         selectedDate = dateKey;
         bookingStatus.textContent = "";
-        updateTimeAvailability();
+        renderTimeOptions();
 
         if (isOutsideMonth) {
           visibleMonth = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -247,20 +303,17 @@ if (
     }
 
     const formData = new FormData(bookingForm);
-    const dateLabel = parseDateKey(selectedDate).toLocaleDateString(undefined, {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-    const subject = `SD Day Traders consultation request — ${dateLabel}`;
+    const selectedInstant = getSelectedInstant();
+    const localDateTime = formatDateTime(selectedInstant, visitorTimeZone);
+    const pacificDateTime = formatDateTime(selectedInstant, PACIFIC_TIME_ZONE);
+    const subject = `SD Day Traders consultation request — ${pacificDateTime} PT`;
     const body = [
       "Hello Esai,",
       "",
       "I'd like to request a consultation.",
       "",
-      `Preferred date: ${dateLabel}`,
-      `Preferred time: ${formData.get("time")}`,
+      `Customer time: ${localDateTime} (${visitorTimeZone})`,
+      `Pacific time: ${pacificDateTime} PT`,
       `Focus: ${formData.get("topic")}`,
       `Name: ${formData.get("name")}`,
       `Email: ${formData.get("email")}`,
@@ -273,6 +326,13 @@ if (
     window.location.href = `mailto:${bookingRecipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   });
 
+  if (timezoneNote) {
+    timezoneNote.textContent = visitorTimeZone === PACIFIC_TIME_ZONE
+      ? "Times are shown in Pacific Time."
+      : `Times are shown in your timezone (${visitorTimeZone}); Esai receives the Pacific equivalent.`;
+  }
+
+  renderTimeOptions();
   renderCalendar();
   updateSummary();
 }
