@@ -9,6 +9,7 @@ User=sddt
 Group=sddt
 WorkingDirectory=/opt/sd-day-traders
 EnvironmentFile=/etc/sddt-booking.env
+EnvironmentFile=-/root/.3dvr/config/portal.env
 ExecStart=/usr/bin/node server/start.js
 Restart=on-failure
 RestartSec=3
@@ -17,6 +18,7 @@ PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths=/var/lib/sddt
+MemoryMax=128M
 
 [Install]
 WantedBy=multi-user.target
