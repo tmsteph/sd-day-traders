@@ -2,7 +2,11 @@
   "name": "sd-day-traders",
   "private": true,
   "scripts": {
-    "test": "playwright test"
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node --test tests/server/*.test.js",
+    "test:e2e": "playwright test",
+    "dev": "node server/dev-server.js",
+    "start:booking-api": "node server/start.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0"

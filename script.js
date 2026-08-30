@@ -46,7 +46,21 @@ if (
     Intl.DateTimeFormat().resolvedOptions().timeZone || PACIFIC_TIME_ZONE;
   const timezoneNote = document.querySelector("[data-timezone-note]");
   const timeSelect = bookingForm.elements.time;
-  const bookingRecipient = "gamboaesai@gmail.com";
+  const bookingApiBase = (document.documentElement.dataset.bookingApi || "").replace(/\/$/, "");
+  const bookingSubmitButton = bookingForm.querySelector('button[type="submit"]');
+  let busyRanges = [];
+  let availabilityState = "idle";
+
+  const apiUrl = (path) => `${bookingApiBase}${path}`;
+  const rangesOverlap = (aStart, aEnd, bStart, bEnd) => aStart < bEnd && bStart < aEnd;
+  const slotIsBusy = (instant) => {
+    const end = new Date(instant.getTime() + 60 * 60 * 1000);
+    return busyRanges.some((range) => {
+      const start = new Date(range.start);
+      const stop = new Date(range.end);
+      return !Number.isNaN(start.getTime()) && !Number.isNaN(stop.getTime()) && rangesOverlap(instant, end, start, stop);
+    });
+  };
 
   const getZonedParts = (date, timeZone) => {
     const parts = new Intl.DateTimeFormat("en-US", {
@@ -159,12 +173,42 @@ if (
         option.textContent = `${localTime} ${formatShortDate(instant, visitorTimeZone)} local · ${pacificTime} PT`;
       }
 
-      option.disabled = instant <= new Date();
+      option.disabled =
+        instant <= new Date() ||
+        availabilityState !== "ready" ||
+        slotIsBusy(instant);
     });
 
     if (timeSelect.selectedOptions[0]?.disabled) {
       timeSelect.value = "";
     }
+  };
+
+
+  const loadAvailabilityForDate = async (dateKey) => {
+    availabilityState = "loading";
+    busyRanges = [];
+    renderTimeOptions();
+    bookingStatus.textContent = "Checking Esai's calendar…";
+    const from = makePacificInstant(dateKey, "08:00");
+    const to = makePacificInstant(dateKey, "20:00");
+    try {
+      const response = await fetch(
+        apiUrl(`/api/availability?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`),
+        { credentials: "include" }
+      );
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Unable to verify availability.");
+      busyRanges = Array.isArray(payload.busy) ? payload.busy : [];
+      availabilityState = "ready";
+      bookingStatus.textContent = "";
+    } catch (error) {
+      availabilityState = "error";
+      busyRanges = [];
+      bookingStatus.textContent = "Live availability could not be verified. Please try again shortly.";
+    }
+    renderTimeOptions();
+    updateSummary();
   };
 
   const updateSummary = () => {
@@ -256,9 +300,11 @@ if (
         button.setAttribute("aria-pressed", "false");
       }
 
-      button.addEventListener("click", () => {
+      button.addEventListener("click", async () => {
         selectedDate = dateKey;
-        bookingStatus.textContent = "";
+        timeSelect.value = "";
+        availabilityState = "loading";
+        busyRanges = [];
         renderTimeOptions();
 
         if (isOutsideMonth) {
@@ -267,6 +313,7 @@ if (
 
         renderCalendar();
         updateSummary();
+        await loadAvailabilityForDate(dateKey);
       });
 
       calendarGrid.append(button);
@@ -289,7 +336,7 @@ if (
   timeSelect.addEventListener("change", updateSummary);
   bookingForm.elements.topic.addEventListener("change", updateSummary);
 
-  bookingForm.addEventListener("submit", (event) => {
+  bookingForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     bookingStatus.textContent = "";
 
@@ -297,33 +344,49 @@ if (
       bookingStatus.textContent = "Choose a date first.";
       return;
     }
+    if (availabilityState !== "ready") {
+      bookingStatus.textContent = "Please wait until live availability is verified.";
+      return;
+    }
+    if (!bookingForm.reportValidity()) return;
 
-    if (!bookingForm.reportValidity()) {
+    const selectedInstant = getSelectedInstant();
+    if (!selectedInstant || slotIsBusy(selectedInstant)) {
+      bookingStatus.textContent = "That time is no longer available. Choose another time.";
+      renderTimeOptions();
       return;
     }
 
     const formData = new FormData(bookingForm);
-    const selectedInstant = getSelectedInstant();
-    const localDateTime = formatDateTime(selectedInstant, visitorTimeZone);
-    const pacificDateTime = formatDateTime(selectedInstant, PACIFIC_TIME_ZONE);
-    const subject = `SD Day Traders consultation request — ${pacificDateTime} PT`;
-    const body = [
-      "Hello Esai,",
-      "",
-      "I'd like to request a consultation.",
-      "",
-      `Customer time: ${localDateTime} (${visitorTimeZone})`,
-      `Pacific time: ${pacificDateTime} PT`,
-      `Focus: ${formData.get("topic")}`,
-      `Name: ${formData.get("name")}`,
-      `Email: ${formData.get("email")}`,
-      "",
-      "Please confirm whether this time is available.",
-    ].join("\n");
-
-    bookingStatus.textContent =
-      "Your request is ready. Your email app is opening — tap Send to deliver it to Esai.";
-    window.location.href = `mailto:${bookingRecipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    bookingSubmitButton.disabled = true;
+    bookingStatus.textContent = "Sending your request…";
+    try {
+      const response = await fetch(apiUrl("/api/bookings/request"), {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          start: selectedInstant.toISOString(),
+          timeZone: visitorTimeZone,
+          topic: formData.get("topic"),
+          name: formData.get("name"),
+          email: formData.get("email"),
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok && response.status !== 202) throw new Error(payload.error || "Unable to send request.");
+      const successMessage = payload.warnings?.length
+        ? "Your request is saved and pending Esai's approval. One notification had a delivery issue, but the request is safely recorded."
+        : "Request received. Esai will review it before the appointment is confirmed.";
+      await loadAvailabilityForDate(selectedDate);
+      bookingStatus.textContent = successMessage;
+    } catch (error) {
+      const errorMessage = error.message || "We couldn't safely record that request. Please try again.";
+      if (selectedDate) await loadAvailabilityForDate(selectedDate);
+      bookingStatus.textContent = errorMessage;
+    } finally {
+      bookingSubmitButton.disabled = false;
+    }
   });
 
   if (timezoneNote) {

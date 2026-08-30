@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" data-booking-api="">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>SD Day Traders Admin</title>
+  <meta name="theme-color" content="#101311" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="./admin.css" />
+</head>
+<body>
+  <main class="admin-shell">
+    <header class="admin-header">
+      <div>
+        <p class="eyebrow">SD Day Traders</p>
+        <h1>Esai admin</h1>
+        <p class="admin-muted">Approve consultation requests and control availability.</p>
+      </div>
+      <a class="button button-secondary" href="../">Public site</a>
+    </header>
+
+    <section class="admin-card" data-connection-card>
+      <div>
+        <p class="card-kicker">Google connection</p>
+        <h2 data-connection-title>Checking connection…</h2>
+        <p class="admin-muted" data-connection-detail>Calendar write + Gmail send only.</p>
+      </div>
+      <a class="button button-primary" data-connect-google hidden>Connect Google</a>
+      <button class="button button-secondary" type="button" data-logout hidden>Sign out</button>
+    </section>
+
+    <div data-admin-content hidden>
+      <section class="admin-card">
+        <div class="admin-section-heading">
+          <div>
+            <p class="card-kicker">Pending requests</p>
+            <h2>Review consultations</h2>
+          </div>
+          <button class="button button-secondary" type="button" data-refresh>Refresh</button>
+        </div>
+        <p class="admin-status" data-admin-status aria-live="polite"></p>
+        <div class="request-list" data-request-list></div>
+      </section>
+
+      <section class="admin-card">
+        <div>
+          <p class="card-kicker">Availability</p>
+          <h2>Block time</h2>
+          <p class="admin-muted">These blocks are written to Google Calendar and immediately remove slots from public booking.</p>
+        </div>
+        <form class="block-form" data-block-form>
+          <label>Start (Pacific Time)<input type="datetime-local" name="start" required></label>
+          <label>End (Pacific Time)<input type="datetime-local" name="end" required></label>
+          <label>Reason<input type="text" name="title" maxlength="100" placeholder="Unavailable"></label>
+          <button class="button button-primary" type="submit">Block this time</button>
+        </form>
+        <div class="block-list" data-block-list></div>
+      </section>
+    </div>
+  </main>
+  <script src="./admin.js"></script>
+</body>
+</html>

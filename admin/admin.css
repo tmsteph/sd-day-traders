@@ -1,0 +1,46 @@
+.admin-shell {
+  width: min(1080px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 64px;
+}
+.admin-header, .admin-section-heading, .admin-card, .request-actions, .block-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+.admin-header { margin-bottom: 24px; }
+.admin-card {
+  align-items: flex-start;
+  padding: 24px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px;
+  background: rgba(13,18,15,.92);
+}
+.admin-card > [data-admin-content], .request-list, .block-list { width: 100%; }
+.admin-muted, .admin-status { color: rgba(255,255,255,.68); }
+.request-list, .block-list { display: grid; gap: 12px; margin-top: 18px; }
+.request-card, .block-row {
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 16px;
+  background: rgba(255,255,255,.035);
+}
+.request-card[data-highlight="true"] { outline: 2px solid rgba(141, 255, 181, .7); }
+.request-card h3, .request-card p { margin: 0 0 8px; }
+.request-meta { color: rgba(255,255,255,.66); font-size: .92rem; }
+.request-actions { justify-content: flex-start; flex-wrap: wrap; margin-top: 14px; }
+.reschedule-editor { display: grid; gap: 10px; margin-top: 14px; }
+.reschedule-editor textarea { min-height: 130px; }
+.block-form { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)) auto; gap: 12px; margin-top: 18px; }
+.block-form label { display: grid; gap: 6px; }
+.block-form input, .reschedule-editor textarea {
+  width: 100%; box-sizing: border-box; padding: 11px 12px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.14); background: rgba(0,0,0,.24); color: inherit;
+}
+.status-pill { display: inline-block; padding: 3px 8px; border-radius: 999px; background: rgba(255,255,255,.09); font-size: .78rem; }
+@media (max-width: 760px) {
+  .admin-header, .admin-card, .admin-section-heading, .block-row { align-items: stretch; flex-direction: column; }
+  .block-form { grid-template-columns: 1fr; }
+}
