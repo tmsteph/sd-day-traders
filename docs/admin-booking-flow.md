@@ -15,6 +15,12 @@ Status: development design only. Do not expose or release until the authenticate
 9. Ask to reschedule opens a prefilled admin composer with the original request and suggested alternatives. Esai can edit the message before sending it from his connected Gmail account. The request becomes `reschedule_requested`.
 10. Decline asks for confirmation, marks the request `declined`, and sends a courteous customer email.
 
+## Email interaction
+
+Esai should be able to handle the common case from the notification email with very little friction. The buttons deep-link to the exact pending request and intended action, but the final state change happens only after authenticated confirmation in admin. This avoids accidental approvals from email scanners, link previews, or forwarded messages.
+
+For rescheduling, admin should open an editable message rather than immediately emailing the customer. It should prefill the original requested time plus a few currently available alternatives, with all times shown in both Esai's Pacific time and the customer's local timezone when known.
+
 ## Security and UX rules
 
 - Esai must authenticate before any state-changing action.
