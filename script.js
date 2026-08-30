@@ -36,8 +36,6 @@ if (
   bookingForm &&
   calendarGrid &&
   calendarMonth &&
-  previousMonthButton &&
-  nextMonthButton &&
   bookingSummary &&
   bookingStatus
 ) {
@@ -50,8 +48,10 @@ if (
   const bookingApiEnabled = Boolean(bookingApiBase);
   const bookingRecipient = "gamboaesai@gmail.com";
   const bookingSubmitButton = bookingForm.querySelector('button[type="submit"]');
+  const calendarWeekdays = document.querySelector(".calendar-weekdays");
+  const calendarToolbar = calendarMonth.closest(".calendar-toolbar");
   let busyRanges = [];
-  let availabilityState = "idle";
+  let availabilityState = bookingApiEnabled ? "idle" : "ready";
 
   const apiUrl = (path) => `${bookingApiBase}${path}`;
   const rangesOverlap = (aStart, aEnd, bStart, bEnd) => aStart < bEnd && bStart < aEnd;
@@ -139,7 +139,9 @@ if (
   );
   today.setHours(0, 0, 0, 0);
 
-  let visibleMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const windowEnd = new Date(today);
+  windowEnd.setDate(windowEnd.getDate() + 30);
+  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
   let selectedDate = "";
 
   const formatDateKey = (date) => {
@@ -149,10 +151,23 @@ if (
     return `${year}-${month}-${day}`;
   };
 
+  const candidateTimeValues = Array.from(timeSelect.options)
+    .slice(1)
+    .map((option) => option.value)
+    .filter(Boolean);
+
   const getSelectedInstant = () => {
     if (!selectedDate || !timeSelect.value) return null;
     return makePacificInstant(selectedDate, timeSelect.value);
   };
+
+  const dateHasBookableSlot = (dateKey) =>
+    candidateTimeValues.some((value) => {
+      const instant = makePacificInstant(dateKey, value);
+      if (instant <= new Date()) return false;
+      if (!bookingApiEnabled || availabilityState !== "ready") return !bookingApiEnabled;
+      return !slotIsBusy(instant);
+    });
 
   const renderTimeOptions = () => {
     Array.from(timeSelect.options).forEach((option, index) => {
@@ -185,39 +200,6 @@ if (
     }
   };
 
-
-  const loadAvailabilityForDate = async (dateKey) => {
-    if (!bookingApiEnabled) {
-      availabilityState = "ready";
-      busyRanges = [];
-      renderTimeOptions();
-      return;
-    }
-    availabilityState = "loading";
-    busyRanges = [];
-    renderTimeOptions();
-    bookingStatus.textContent = "Checking Esai's calendar…";
-    const from = makePacificInstant(dateKey, "08:00");
-    const to = makePacificInstant(dateKey, "20:00");
-    try {
-      const response = await fetch(
-        apiUrl(`/api/availability?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`),
-        { credentials: "include" }
-      );
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || "Unable to verify availability.");
-      busyRanges = Array.isArray(payload.busy) ? payload.busy : [];
-      availabilityState = "ready";
-      bookingStatus.textContent = "";
-    } catch (error) {
-      availabilityState = "error";
-      busyRanges = [];
-      bookingStatus.textContent = "Live availability could not be verified. Please try again shortly.";
-    }
-    renderTimeOptions();
-    updateSummary();
-  };
-
   const updateSummary = () => {
     const topic = bookingForm.elements.topic.value;
 
@@ -242,108 +224,182 @@ if (
     bookingSummary.textContent = details.join(" · ");
   };
 
-  const renderCalendar = () => {
-    calendarGrid.replaceChildren();
-    calendarMonth.textContent = visibleMonth.toLocaleDateString(undefined, {
-      month: "long",
-      year: "numeric",
-    });
+  const createDateButton = (date) => {
+    const dateKey = formatDateKey(date);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "calendar-day";
+    button.dataset.date = dateKey;
+    button.style.display = "grid";
+    button.style.gap = "0.1rem";
+    button.style.minHeight = "4rem";
+    button.style.padding = "0.55rem 0.4rem";
 
-    const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    previousMonthButton.disabled = visibleMonth <= currentMonth;
+    const weekday = document.createElement("span");
+    weekday.textContent = date.toLocaleDateString(undefined, { weekday: "short" });
+    weekday.style.fontSize = "0.72rem";
+    weekday.style.fontWeight = "600";
+    weekday.style.opacity = "0.68";
 
-    const gridStart = new Date(
-      visibleMonth.getFullYear(),
-      visibleMonth.getMonth(),
-      1 - visibleMonth.getDay()
+    const day = document.createElement("span");
+    day.textContent = String(date.getDate());
+    day.style.fontSize = "1.05rem";
+
+    button.append(weekday, day);
+    button.setAttribute(
+      "aria-label",
+      date.toLocaleDateString(undefined, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })
     );
 
-    for (let index = 0; index < 42; index += 1) {
-      const date = new Date(
-        gridStart.getFullYear(),
-        gridStart.getMonth(),
-        gridStart.getDate() + index
-      );
-      const dateKey = formatDateKey(date);
-      const isOutsideMonth =
-        date.getFullYear() !== visibleMonth.getFullYear() ||
-        date.getMonth() !== visibleMonth.getMonth();
-      if (date < today) {
-        const spacer = document.createElement("span");
-        spacer.className = "calendar-day calendar-day-empty";
-        spacer.setAttribute("aria-hidden", "true");
-        calendarGrid.append(spacer);
-        continue;
-      }
-
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "calendar-day";
-      button.textContent = String(date.getDate());
-      button.dataset.date = dateKey;
-      button.setAttribute(
-        "aria-label",
-        date.toLocaleDateString(undefined, {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        })
-      );
-
-      if (isOutsideMonth) {
-        button.style.opacity = "0.45";
-        button.dataset.outsideMonth = "true";
-      }
-
-      if (dateKey === formatDateKey(today)) {
-        button.classList.add("is-today");
-      }
-
-      if (dateKey === selectedDate) {
-        button.classList.add("is-selected");
-        button.setAttribute("aria-pressed", "true");
-      } else {
-        button.setAttribute("aria-pressed", "false");
-      }
-
-      button.addEventListener("click", async () => {
-        selectedDate = dateKey;
-        timeSelect.value = "";
-        availabilityState = "loading";
-        busyRanges = [];
-        renderTimeOptions();
-
-        if (isOutsideMonth) {
-          visibleMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-        }
-
-        renderCalendar();
-        updateSummary();
-        if (bookingApiEnabled) {
-          await loadAvailabilityForDate(dateKey);
-        } else {
-          availabilityState = "ready";
-          renderTimeOptions();
-        }
-      });
-
-      calendarGrid.append(button);
+    if (dateKey === formatDateKey(today)) {
+      button.classList.add("is-today");
     }
+
+    if (dateKey === selectedDate) {
+      button.classList.add("is-selected");
+      button.setAttribute("aria-pressed", "true");
+    } else {
+      button.setAttribute("aria-pressed", "false");
+    }
+
+    button.addEventListener("click", () => {
+      selectedDate = dateKey;
+      timeSelect.value = "";
+      renderTimeOptions();
+      renderCalendar();
+      updateSummary();
+      bookingStatus.textContent = "";
+    });
+
+    return button;
   };
 
-  previousMonthButton.addEventListener("click", () => {
-    const previousMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
-    const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    if (previousMonth < currentMonth) return;
-    visibleMonth = previousMonth;
-    renderCalendar();
-  });
+  const renderCalendar = () => {
+    calendarGrid.replaceChildren();
+    calendarMonth.textContent = "Available dates · next 30 days";
+    calendarMonth.style.textAlign = "left";
+    calendarGrid.style.display = "grid";
+    calendarGrid.style.gridTemplateColumns = "1fr";
+    calendarGrid.style.gap = "1rem";
 
-  nextMonthButton.addEventListener("click", () => {
-    visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1);
+    if (previousMonthButton) {
+      previousMonthButton.disabled = true;
+      previousMonthButton.hidden = true;
+    }
+    if (nextMonthButton) {
+      nextMonthButton.disabled = true;
+      nextMonthButton.hidden = true;
+    }
+    if (calendarWeekdays) calendarWeekdays.hidden = true;
+    if (calendarToolbar) calendarToolbar.style.gridTemplateColumns = "1fr";
+
+    const groups = new Map();
+    let selectedStillAvailable = !selectedDate;
+
+    for (let index = 0; index <= 30; index += 1) {
+      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + index);
+      if (date > windowEnd) break;
+      if (date.getFullYear() > nextMonth.getFullYear()) break;
+      if (date.getFullYear() === nextMonth.getFullYear() && date.getMonth() > nextMonth.getMonth()) break;
+
+      const dateKey = formatDateKey(date);
+      if (!dateHasBookableSlot(dateKey)) continue;
+
+      const groupKey = `${date.getFullYear()}-${date.getMonth()}`;
+      if (!groups.has(groupKey)) groups.set(groupKey, []);
+      groups.get(groupKey).push(date);
+      if (dateKey === selectedDate) selectedStillAvailable = true;
+    }
+
+    if (selectedDate && !selectedStillAvailable) {
+      selectedDate = "";
+      timeSelect.value = "";
+      renderTimeOptions();
+    }
+
+    if (groups.size === 0) {
+      const empty = document.createElement("p");
+      empty.className = "booking-note";
+      empty.textContent = availabilityState === "loading"
+        ? "Checking available dates…"
+        : "No consultation dates are currently available in the next 30 days.";
+      calendarGrid.append(empty);
+      return;
+    }
+
+    groups.forEach((dates) => {
+      const group = document.createElement("section");
+      group.className = "calendar-month-group";
+      group.style.display = "grid";
+      group.style.gap = "0.55rem";
+
+      const heading = document.createElement("h4");
+      heading.className = "calendar-group-heading";
+      heading.textContent = dates[0].toLocaleDateString(undefined, {
+        month: "long",
+        year: "numeric",
+      });
+      heading.style.margin = "0";
+      heading.style.fontSize = "0.9rem";
+      heading.style.letterSpacing = "0";
+
+      const dateGrid = document.createElement("div");
+      dateGrid.className = "calendar-available-grid";
+      dateGrid.style.display = "grid";
+      dateGrid.style.gridTemplateColumns = "repeat(auto-fit, minmax(4.7rem, 1fr))";
+      dateGrid.style.gap = "0.45rem";
+      dates.forEach((date) => dateGrid.append(createDateButton(date)));
+
+      group.append(heading, dateGrid);
+      calendarGrid.append(group);
+    });
+  };
+
+  const loadAvailabilityWindow = async () => {
+    if (!bookingApiEnabled) {
+      availabilityState = "ready";
+      busyRanges = [];
+      renderCalendar();
+      renderTimeOptions();
+      updateSummary();
+      return;
+    }
+
+    availabilityState = "loading";
+    busyRanges = [];
     renderCalendar();
-  });
+    renderTimeOptions();
+    bookingStatus.textContent = "Checking Esai's calendar…";
+
+    const from = makePacificInstant(formatDateKey(today), "00:00");
+    const afterWindow = new Date(windowEnd.getFullYear(), windowEnd.getMonth(), windowEnd.getDate() + 1);
+    const to = makePacificInstant(formatDateKey(afterWindow), "00:00");
+
+    try {
+      const response = await fetch(
+        apiUrl(`/api/availability?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`),
+        { credentials: "include" }
+      );
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Unable to verify availability.");
+      busyRanges = Array.isArray(payload.busy) ? payload.busy : [];
+      availabilityState = "ready";
+      bookingStatus.textContent = "";
+    } catch (error) {
+      availabilityState = "error";
+      busyRanges = [];
+      bookingStatus.textContent = "Live availability could not be verified. Please try again shortly.";
+    }
+
+    renderCalendar();
+    renderTimeOptions();
+    updateSummary();
+  };
 
   timeSelect.addEventListener("change", updateSummary);
   bookingForm.elements.topic.addEventListener("change", updateSummary);
@@ -412,11 +468,11 @@ if (
       const successMessage = payload.warnings?.length
         ? "Your request is saved and pending Esai's approval. One notification had a delivery issue, but the request is safely recorded."
         : "Request received. Esai will review it before the appointment is confirmed.";
-      await loadAvailabilityForDate(selectedDate);
+      await loadAvailabilityWindow();
       bookingStatus.textContent = successMessage;
     } catch (error) {
       const errorMessage = error.message || "We couldn't safely record that request. Please try again.";
-      if (selectedDate) await loadAvailabilityForDate(selectedDate);
+      await loadAvailabilityWindow();
       bookingStatus.textContent = errorMessage;
     } finally {
       bookingSubmitButton.disabled = false;
@@ -429,7 +485,11 @@ if (
       : `Times are shown in your timezone (${visitorTimeZone}); Esai receives the Pacific equivalent.`;
   }
 
-  renderTimeOptions();
-  renderCalendar();
-  updateSummary();
+  if (bookingApiEnabled) {
+    loadAvailabilityWindow();
+  } else {
+    renderTimeOptions();
+    renderCalendar();
+    updateSummary();
+  }
 }
