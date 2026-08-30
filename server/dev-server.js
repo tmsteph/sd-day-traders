@@ -30,7 +30,7 @@ function staticFile(req, res) {
   if (path.extname(file) === '.html') {
     let html = fs.readFileSync(file, 'utf8');
     if (url.searchParams.get('mailOnly') !== '1') {
-      html = html.replace('data-booking-api=""', `data-booking-api="${origin}"`);
+      html = html.replace(/data-booking-api="[^"]*"/, `data-booking-api="${origin}"`);
     }
     res.end(html); return true;
   }
