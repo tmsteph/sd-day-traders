@@ -28,7 +28,10 @@ function staticFile(req, res) {
   if (!file.startsWith(root) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return false;
   res.statusCode = 200; res.setHeader('Content-Type', mime[path.extname(file)] || 'application/octet-stream');
   if (path.extname(file) === '.html') {
-    const html = fs.readFileSync(file, 'utf8').replace('data-booking-api=""', `data-booking-api="${origin}"`);
+    let html = fs.readFileSync(file, 'utf8');
+    if (url.searchParams.get('mailOnly') !== '1') {
+      html = html.replace('data-booking-api=""', `data-booking-api="${origin}"`);
+    }
     res.end(html); return true;
   }
   fs.createReadStream(file).pipe(res); return true;
